@@ -1,6 +1,10 @@
 package producer
 
-import "github.com/IBM/sarama"
+import (
+	"log/slog"
+
+	"github.com/IBM/sarama"
+)
 
 type ProducerDTO struct {
 	Topic string `json:"topic"`
@@ -38,13 +42,15 @@ func PushToQueue(dto ProducerDTO) error {
 		}
 	}()
 
-	_, _, err = conn.SendMessage(&sarama.ProducerMessage{
+	partition, offset, err := conn.SendMessage(&sarama.ProducerMessage{
 		Topic: dto.Topic,
 		Value: sarama.ByteEncoder(dto.Data),
 	})
 	if err != nil {
 		return err
 	}
+
+	slog.Info("Sent message to", "topic", dto.Topic, "partition", partition, "offset", offset)
 
 	return nil
 }
